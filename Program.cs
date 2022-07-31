@@ -1,5 +1,7 @@
 using Mersin.Configurations;
+using Mersin.Contracts;
 using Mersin.Data;
+using Mersin.Repository;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Swashbuckle.AspNetCore.Filters;
@@ -20,6 +22,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddAutoMapper(typeof(MapperConfig));
+builder.Services.AddScoped(typeof(IGenericRepository<>),typeof(GenericRepository<>));
+builder.Services.AddScoped<ICountriesRepository,CountriesRepository>();
+
 
 var app = builder.Build();
 

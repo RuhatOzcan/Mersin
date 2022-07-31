@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Mersin.Contracts;
 using Mersin.Data;
 using Mersin.Models.Country;
 using Microsoft.AspNetCore.Mvc;
@@ -14,19 +15,19 @@ namespace Mersin.Controllers
     [ApiController]
     public class CountriesController : ControllerBase
     {
-        private readonly HotelListingDbContext _context;
         private readonly IMapper _mapper;
+        private readonly ICountriesRepository _countriesRepository;
 
-        public CountriesController(HotelListingDbContext context,IMapper mapper)
+        public CountriesController(IMapper mapper,ICountriesRepository countriesRepository)
         {
-            _context = context;
             _mapper = mapper;
+            _countriesRepository = countriesRepository;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<GetCountryDto>>> GetCountries()
         {
-            var countries=await _context.Countries.ToListAsync();
+            var countries=await _countriesRepository.GetAllAsync();
              var records=_mapper.Map<List<GetCountryDto>>(countries);
              return Ok(records);
         }
@@ -34,8 +35,7 @@ namespace Mersin.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<CountryDto>> GetCountry(int id)
         {
-            var country = await _context.Countries.Include(q=>q.Hotels)
-            .FirstOrDefaultAsync(q=>q.Id==id);
+            var country = _countriesRepository.GetDatails(id);
 
             if (country == null)
             {
@@ -53,7 +53,7 @@ namespace Mersin.Controllers
                 return BadRequest();
             }
             // _context.Entry(country).State = EntityState.Modified;
-            var country=await _context.Countries.FindAsync(id);
+            var country=await _countriesRepository.GetAsync(id);
 
             if(country==null)
             {
@@ -63,12 +63,12 @@ namespace Mersin.Controllers
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _countriesRepository.UpdateAsync(country);
             }
             catch (DbUpdateConcurrencyException)
             {
 
-                if (!CountryExists(id))
+                if (!await CountryExists(id))
                 {
                     return NotFound();
                 }
@@ -92,8 +92,7 @@ namespace Mersin.Controllers
 
             var country=_mapper.Map<Country>(createCountryDto);
 
-            await _context.AddAsync(country);
-            await _context.SaveChangesAsync();
+            await _countriesRepository.AddAsync(country);
             return CreatedAtAction("GetCountry", new { id = country.Id }, country);
         }
 
@@ -101,20 +100,19 @@ namespace Mersin.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCountry(int id)
         {
-            var country = await _context.Countries.FindAsync(id);
+            var country = await _countriesRepository.GetAsync(id);
             if(country==null)
             {
                 return NotFound();
             }
 
-            _context.Countries.Remove(country);
-            await _context.SaveChangesAsync();
+            await _countriesRepository.DeleteAsync(id);
             return NoContent();
         }
 
-        private bool CountryExists(int id)
+        private async Task<bool> CountryExists(int id)
         {
-            return _context.Countries.Any(e=>e.Id==id);
+            return await _countriesRepository.Exists(id);
         }
 
 
