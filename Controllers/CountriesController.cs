@@ -46,13 +46,20 @@ namespace Mersin.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCountry(int id, Country country)
+        public async Task<IActionResult> PutCountry(int id, UpdateCountryDto updateCountryDto)
         {
-            if (id != country.Id)
+            if (id != updateCountryDto.Id)
             {
                 return BadRequest();
             }
-            _context.Entry(country).State = EntityState.Modified;
+            // _context.Entry(country).State = EntityState.Modified;
+            var country=await _context.Countries.FindAsync(id);
+
+            if(country==null)
+            {
+                return NotFound();
+            }
+            _mapper.Map(updateCountryDto,country);
 
             try
             {
@@ -85,7 +92,7 @@ namespace Mersin.Controllers
 
             var country=_mapper.Map<Country>(createCountryDto);
 
-            _context.Countries.Add(country);
+            await _context.AddAsync(country);
             await _context.SaveChangesAsync();
             return CreatedAtAction("GetCountry", new { id = country.Id }, country);
         }

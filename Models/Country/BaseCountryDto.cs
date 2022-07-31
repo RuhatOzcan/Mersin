@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace Mersin.Models.Country
 {
-    public class CreateCountryDto : BaseCountryDto
+    public abstract class BaseCountryDto
     {
-
+        [Required]
+        public string Name { get; set; }
+        public string ShortName { get; set; }
     }
 }
