@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Mersin.Contracts;
 using Mersin.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Mersin.Repository
 {
@@ -16,7 +17,7 @@ namespace Mersin.Repository
             _context = context;
         }
 
-        public async Task<Country> GetDatails(int? id)
+        public async Task<Country> GetDatails(int id)
         {
             return await _context.Countries.Include(q=>q.Hotels)
             .FirstOrDefaultAsync(q=>q.Id==id);

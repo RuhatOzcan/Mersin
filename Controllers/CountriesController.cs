@@ -35,7 +35,7 @@ namespace Mersin.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<CountryDto>> GetCountry(int id)
         {
-            var country = _countriesRepository.GetDatails(id);
+            var country = await _countriesRepository.GetDatails(id);
 
             if (country == null)
             {
